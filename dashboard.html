@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - College Notice Board</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>🎓 College Notice Board</h1>
+    <p id="subtitle">Dashboard</p>
+  </header>
+  <nav class="bar" id="nav"></nav>
+
+  <main class="container">
+    <h2 id="welcome">Welcome!</h2>
+    <p>Your role: <strong id="role"></strong></p>
+    <div id="msg" class="msg"></div>
+
+    <div class="stats">
+      <div class="stat-card"><h3>Total Notices</h3><div class="number" id="total">0</div></div>
+      <div class="stat-card"><h3>Notice Categories</h3><div class="number" id="cats">0</div></div>
+      <div class="stat-card"><h3>Account Role</h3><div class="number" id="role2" style="font-size:25px"></div></div>
+    </div>
+
+    <section class="section">
+      <h2>Quick Actions</h2>
+      <div class="actions" id="quick"></div>
+    </section>
+
+    <section class="section">
+      <h2>Recent Notices</h2>
+      <div id="recent"></div>
+      <p><a href="notices.html">View all notices →</a></p>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    (async () => {
+      const user = await requireUser();
+      if (!user) return;
+      renderNav(user);
+      const role = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      document.getElementById("welcome").textContent = "Welcome, " + user.name + "!";
+      document.getElementById("role").textContent = role;
+      document.getElementById("role2").textContent = role;
+      document.getElementById("subtitle").textContent = role + " Dashboard | Stay updated with college announcements";
+
+      document.getElementById("quick").innerHTML =
+        (user.role === "admin" ? '<a class="btn" href="notice_form.html">+ Post New Notice</a>' : "") +
+        '<a class="btn" href="notices.html">View All Notices</a>';
+
+      try {
+        const d = await api("/api/stats");
+        document.getElementById("total").textContent = d.totalNotices;
+        document.getElementById("cats").textContent = d.totalCategories;
+        document.getElementById("recent").innerHTML = d.recent.length
+          ? d.recent.map((n) => `
+              <div style="padding:14px 0;border-bottom:1px solid #e5e7eb">
+                <h3 style="margin:0 0 8px;color:#163a63">${esc(n.title)}</h3>
+                <span class="badge">${esc(n.category || "General")}</span>
+                <p class="meta">Posted by: ${esc(n.author || "Unknown")} | Date: ${esc(n.created_at)}</p>
+              </div>`).join("")
+          : '<p class="meta">No notices have been published yet.</p>';
+      } catch (err) { showMsg(document.getElementById("msg"), err.message); }
+    })();
+  </script>
+</body>
+</html>

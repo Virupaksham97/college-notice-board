@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post / Edit Notice - College Notice Board</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top"><h1>🎓 College Notice Board</h1></header>
+  <nav class="bar" id="nav"></nav>
+
+  <main class="container">
+    <div class="form-card">
+      <h2 id="heading">Post a New Notice</h2>
+      <div id="msg" class="msg"></div>
+      <form id="form">
+        <label for="title">Notice Title *</label>
+        <input type="text" id="title" maxlength="200" required>
+
+        <label for="description">Notice Description *</label>
+        <textarea id="description" required></textarea>
+
+        <div class="row">
+          <div>
+            <label for="category">Category</label>
+            <select id="category"></select>
+          </div>
+          <div>
+            <label for="status">Publication Status</label>
+            <select id="status">
+              <option value="published">Published</option>
+              <option value="draft">Save as Draft</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="expiry">Expiry Date (optional)</label>
+        <input type="date" id="expiry">
+
+        <div class="actions">
+          <button type="submit" id="submit">Publish Notice</button>
+          <a class="btn secondary" href="notices.html">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script>
+    const msg = document.getElementById("msg");
+    const id = Number(new URLSearchParams(location.search).get("id")) || null;
+    document.getElementById("category").innerHTML =
+      CATEGORIES.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+    (async () => {
+      const user = await requireUser(["admin"]);
+      if (!user) return;
+      renderNav(user);
+
+      if (id) {
+        document.getElementById("heading").textContent = "Edit Notice";
+        document.getElementById("submit").textContent = "Save Changes";
+        try {
+          const { notice } = await api("/api/notices/" + id);
+          document.getElementById("title").value = notice.title;
+          document.getElementById("description").value = notice.description;
+          document.getElementById("category").value = notice.category;
+          document.getElementById("status").value = notice.status;
+          document.getElementById("expiry").value = notice.expiry_date ? notice.expiry_date.slice(0, 10) : "";
+        } catch (err) { showMsg(msg, err.message); }
+      }
+    })();
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        category: document.getElementById("category").value,
+        status: document.getElementById("status").value,
+        expiry_date: document.getElementById("expiry").value,
+      };
+      try {
+        await (id ? api("/api/notices/" + id, "PUT", body) : api("/api/notices", "POST", body));
+        location.href = "notices.html";
+      } catch (err) { showMsg(msg, err.message); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Notice Board - Login</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+  <div class="auth-box">
+    <h1>🎓 College Notice Board</h1>
+    <p class="sub">Login to continue</p>
+    <div id="msg" class="msg"></div>
+    <form id="form">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p class="link">Don't have an account? <a href="register.html">Register as a Student</a></p>
+  </div>
+  <script src="js/app.js"></script>
+  <script>
+    const msg = document.getElementById("msg");
+    if (new URLSearchParams(location.search).get("registered") === "1")
+      showMsg(msg, "Registration successful! Please log in.", "success");
+
+    api("/api/auth/me").then(() => (location.href = "dashboard.html")).catch(() => {});
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await api("/api/auth/login", "POST", {
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+        });
+        location.href = "dashboard.html";
+      } catch (err) { showMsg(msg, err.message); }
+    });
+  </script>
+</body>
+</html>
