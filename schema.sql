@@ -1,0 +1,26 @@
+CREATE DATABASE IF NOT EXISTS college_notice_board
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE college_notice_board;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin','faculty','student') NOT NULL DEFAULT 'student',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  description TEXT NOT NULL,
+  category VARCHAR(50) NOT NULL DEFAULT 'General',
+  status ENUM('draft','published') NOT NULL DEFAULT 'published',
+  admin_id INT NULL,
+  expiry_date DATE NULL,
+  attachment VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
+);
